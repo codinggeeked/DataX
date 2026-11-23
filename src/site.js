@@ -1,3 +1,88 @@
+const intro = document.querySelector(".intro");
+if (!intro) document.documentElement.classList.add("intro-done");
+if (intro) {
+  const canvas = intro.querySelector(".intro-rain");
+  const ctx = canvas.getContext("2d");
+  const size = 18;
+  const rainTime = 3600;
+  let columns = [];
+  let width = 0;
+  let height = 0;
+  let start = 0;
+  let last = 0;
+  let raf = 0;
+  let finished = false;
+
+  const digit = () => String(Math.floor(Math.random() * 10));
+
+  function setup() {
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillStyle = "#020811";
+    ctx.fillRect(0, 0, width, height);
+    const rows = Math.ceil(height / size);
+    columns = Array.from({ length: Math.ceil(width / size) }, () => ({
+      up: Math.random() < .35,
+      pos: -Math.random() * rows,
+      speed: .35 + Math.random() * .65,
+    }));
+  }
+
+  function draw(time) {
+    if (!start) start = time;
+    const elapsed = time - start;
+    if (time - last >= 33) {
+      last = time;
+      ctx.fillStyle = "rgba(2, 8, 17, .14)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `bold ${size - 2}px monospace`;
+      const rows = Math.ceil(height / size);
+      columns.forEach((column, index) => {
+        column.pos += column.speed;
+        if (column.pos > rows + 4 && Math.random() > .96) column.pos = -Math.random() * 8;
+        const row = column.up ? rows - column.pos : column.pos;
+        const x = index * size;
+        const y = row * size;
+        ctx.fillStyle = "#43e5ec";
+        ctx.fillText(digit(), x, column.up ? y + size : y - size);
+        ctx.fillStyle = "#eaffff";
+        ctx.fillText(digit(), x, y);
+      });
+    }
+    if (elapsed > 1500) intro.classList.add("reveal");
+    if (elapsed > rainTime) return finish();
+    raf = window.requestAnimationFrame(draw);
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    window.cancelAnimationFrame(raf);
+    intro.classList.add("done");
+    document.documentElement.classList.add("intro-done");
+    intro.classList.remove("playing");
+    window.removeEventListener("keydown", finish);
+    window.removeEventListener("resize", setup);
+    window.setTimeout(() => intro.remove(), 800);
+  }
+
+  if (ctx && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    intro.classList.add("playing");
+    setup();
+    window.addEventListener("resize", setup);
+    window.addEventListener("keydown", finish);
+    intro.addEventListener("click", finish);
+    raf = window.requestAnimationFrame(draw);
+  } else {
+    intro.remove();
+    document.documentElement.classList.add("intro-done");
+  }
+}
+
 const menu = document.querySelector(".menu");
 const navigation = document.querySelector("#navigation");
 const desktop = window.matchMedia("(min-width: 52rem)");
@@ -87,7 +172,8 @@ const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const field = document.querySelector(".binary-field");
 const context = field.getContext("2d");
 if (context) {
-  const step = 26;
+  const step = 20;
+  const digit = () => String(Math.floor(Math.random() * 10));
   let width = 0;
   let height = 0;
   let lastFrame = 0;
@@ -97,16 +183,23 @@ if (context) {
 
   function paint(time) {
     context.clearRect(0, 0, width, height);
-    context.font = "15px monospace";
-    context.fillStyle = "#43e5ec";
+    context.font = "bold 16px monospace";
     for (const [column, stream] of streams.entries()) {
-      const cycle = height + step * stream.bits.length;
+      const length = stream.digits.length;
+      const cycle = height + step * length;
       const head = (stream.offset + time * stream.speed) % cycle;
-      for (const [index, bit] of stream.bits.entries()) {
+      for (let index = 0; index < length; index++) {
+        if (time && Math.random() < .04) stream.digits[index] = digit();
         const y = head - index * step;
-        if (y < 0 || y > height) continue;
-        context.globalAlpha = .36 * (1 - index / stream.bits.length);
-        context.fillText(bit, column * step + 4, y);
+        if (y < 0 || y > height + step) continue;
+        if (index === 0) {
+          context.globalAlpha = .95;
+          context.fillStyle = "#eaffff";
+        } else {
+          context.globalAlpha = .75 * (1 - index / length) ** 1.4;
+          context.fillStyle = "#43e5ec";
+        }
+        context.fillText(stream.digits[index], column * step + 3, y);
       }
     }
     context.globalAlpha = 1;
@@ -122,7 +215,7 @@ if (context) {
 
   function syncMotion() {
     window.cancelAnimationFrame(request);
-    if (motion.matches || !active || document.hidden) {
+    if (!active || document.hidden) {
       paint(0);
       return;
     }
@@ -136,11 +229,14 @@ if (context) {
     field.width = Math.round(width * scale);
     field.height = Math.round(height * scale);
     context.setTransform(scale, 0, 0, scale, 0, 0);
-    streams = Array.from({ length: Math.ceil(width / step) }, () => ({
-      offset: Math.random() * (height + step * 12),
-      speed: .025 + Math.random() * .055,
-      bits: Array.from({ length: 12 }, () => Math.random() < .5 ? "0" : "1"),
-    }));
+    streams = Array.from({ length: Math.ceil(width / step) }, () => {
+      const length = 10 + Math.floor(Math.random() * 18);
+      return {
+        offset: Math.random() * (height + step * length),
+        speed: .06 + Math.random() * .12,
+        digits: Array.from({ length }, digit),
+      };
+    });
     paint(0);
   });
   resize.observe(field);
@@ -149,7 +245,6 @@ if (context) {
     syncMotion();
   });
   visibility.observe(field);
-  motion.addEventListener("change", syncMotion);
   document.addEventListener("visibilitychange", syncMotion);
 }
 
@@ -191,3 +286,498 @@ dismiss.addEventListener("click", () => {
   }
   cookieLink.focus({ preventScroll: true });
 });
+
+const experience = document.querySelector("#experience");
+if (experience) {
+  const title = experience.querySelector("h2");
+  const text = title.textContent;
+  const glyphs = "0123456789ABCDEFX#$%&@";
+  let decoding = 0;
+  title.setAttribute("aria-label", text);
+
+  function decode() {
+    window.cancelAnimationFrame(decoding);
+    const start = performance.now();
+    const tick = now => {
+      const progress = Math.min((now - start) / 1200, 1);
+      const shown = Math.floor(progress * text.length);
+      title.textContent = [...text].map((char, index) =>
+        index < shown || char === " " ? char : glyphs[Math.floor(Math.random() * glyphs.length)]).join("");
+      if (progress < 1) decoding = window.requestAnimationFrame(tick);
+    };
+    decoding = window.requestAnimationFrame(tick);
+  }
+
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) decode();
+  }, { threshold: .1 }).observe(experience);
+
+  for (const card of experience.querySelectorAll("article")) {
+    card.addEventListener("pointermove", event => {
+      const box = card.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width;
+      const y = (event.clientY - box.top) / box.height;
+      card.style.setProperty("--rx", `${(.5 - y) * 14}deg`);
+      card.style.setProperty("--ry", `${(x - .5) * 18}deg`);
+      card.style.setProperty("--mx", `${x * 100}%`);
+      card.style.setProperty("--my", `${y * 100}%`);
+    });
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--rx", "0deg");
+      card.style.setProperty("--ry", "0deg");
+    });
+  }
+}
+
+const about = document.querySelector("#about");
+if (about) {
+  const heading = about.querySelector("h2");
+  const words = heading.textContent.trim().split(/\s+/);
+  heading.setAttribute("aria-label", words.join(" "));
+  heading.innerHTML = words.map((word, index) =>
+    `<span class="w${index >= words.length - 2 ? " hl" : ""}" aria-hidden="true">${word}</span>`).join(" ");
+  heading.querySelectorAll(".w").forEach((word, index) => word.style.setProperty("--w", index));
+
+  const figure = about.querySelector("figure");
+  const holo = about.querySelector(".holo");
+  figure.addEventListener("pointermove", event => {
+    const box = holo.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    holo.style.setProperty("--rx", `${(.5 - y) * 12}deg`);
+    holo.style.setProperty("--ry", `${(x - .5) * 16}deg`);
+    holo.style.setProperty("--mx", `${x * 100}%`);
+    holo.style.setProperty("--my", `${y * 100}%`);
+  });
+  figure.addEventListener("pointerleave", () => {
+    holo.style.setProperty("--rx", "0deg");
+    holo.style.setProperty("--ry", "0deg");
+  });
+
+  const net = about.querySelector(".about-net");
+  const ink = net.getContext("2d");
+  if (ink) {
+    const reach = 125;
+    let width = 0;
+    let height = 0;
+    let nodes = [];
+    let packets = [];
+    let pointer = null;
+    let loop = 0;
+
+    const resizeNet = new ResizeObserver(() => {
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      width = net.clientWidth;
+      height = net.clientHeight;
+      net.width = Math.round(width * scale);
+      net.height = Math.round(height * scale);
+      ink.setTransform(scale, 0, 0, scale, 0, 0);
+      const count = Math.round(Math.min(120, width * height / 11000));
+      nodes = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - .5) * .6,
+        vy: (Math.random() - .5) * .6,
+        r: 1 + Math.random() * 1.8,
+        hot: Math.random() < .12,
+      }));
+      packets = [];
+    });
+    resizeNet.observe(net);
+
+    function drawNet() {
+      ink.clearRect(0, 0, width, height);
+      for (const node of nodes) {
+        node.x += node.vx;
+        node.y += node.vy;
+        if (node.x < 0 || node.x > width) node.vx *= -1;
+        if (node.y < 0 || node.y > height) node.vy *= -1;
+      }
+      ink.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const distance = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+          if (distance > reach) continue;
+          ink.strokeStyle = `rgba(67, 229, 236, ${(1 - distance / reach) * .3})`;
+          ink.beginPath();
+          ink.moveTo(nodes[i].x, nodes[i].y);
+          ink.lineTo(nodes[j].x, nodes[j].y);
+          ink.stroke();
+        }
+        if (pointer) {
+          const distance = Math.hypot(nodes[i].x - pointer.x, nodes[i].y - pointer.y);
+          if (distance < 190) {
+            ink.strokeStyle = `rgba(255, 104, 27, ${(1 - distance / 190) * .7})`;
+            ink.beginPath();
+            ink.moveTo(nodes[i].x, nodes[i].y);
+            ink.lineTo(pointer.x, pointer.y);
+            ink.stroke();
+          }
+        }
+      }
+      if (nodes.length > 1 && Math.random() < .12) {
+        const from = nodes[Math.floor(Math.random() * nodes.length)];
+        let to = null;
+        let best = reach;
+        for (const node of nodes) {
+          const distance = Math.hypot(node.x - from.x, node.y - from.y);
+          if (node !== from && distance < best) { best = distance; to = node; }
+        }
+        if (to) packets.push({ from, to, t: 0 });
+      }
+      packets = packets.filter(packet => (packet.t += .025) < 1);
+      ink.fillStyle = "#eaffff";
+      ink.shadowColor = "#43e5ec";
+      ink.shadowBlur = 10;
+      for (const { from, to, t } of packets) {
+        ink.beginPath();
+        ink.arc(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, 2.2, 0, Math.PI * 2);
+        ink.fill();
+      }
+      for (const node of nodes) {
+        ink.fillStyle = node.hot ? "#ff681b" : "#43e5ec";
+        ink.shadowColor = ink.fillStyle;
+        ink.beginPath();
+        ink.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+        ink.fill();
+      }
+      ink.shadowBlur = 0;
+      loop = window.requestAnimationFrame(drawNet);
+    }
+
+    about.addEventListener("pointermove", event => {
+      const box = net.getBoundingClientRect();
+      pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
+    });
+    about.addEventListener("pointerleave", () => { pointer = null; });
+
+    let netVisible = false;
+    function syncNet() {
+      window.cancelAnimationFrame(loop);
+      if (netVisible && !document.hidden) loop = window.requestAnimationFrame(drawNet);
+    }
+    new IntersectionObserver(([entry]) => {
+      netVisible = entry.isIntersecting;
+      syncNet();
+    }).observe(about);
+    document.addEventListener("visibilitychange", syncNet);
+  }
+}
+
+/* ===== Site-wide motion helpers ===== */
+const finePointer = window.matchMedia("(pointer: fine)");
+const glyphSet = "0123456789ABCDEFX#$%&@";
+
+function scrambleText(element, duration = 700, lockWidth = false) {
+  const text = element.dataset.text || (element.dataset.text = element.textContent);
+  window.cancelAnimationFrame(Number(element.dataset.scramble || 0));
+  if (lockWidth) element.style.width = `${element.getBoundingClientRect().width}px`;
+  const start = performance.now();
+  const tick = now => {
+    const progress = Math.min((now - start) / duration, 1);
+    const shown = Math.floor(progress * text.length);
+    element.textContent = [...text].map((char, index) =>
+      index < shown || char === " " ? char : glyphSet[Math.floor(Math.random() * glyphSet.length)]).join("");
+    if (progress < 1) {
+      element.dataset.scramble = String(window.requestAnimationFrame(tick));
+    } else {
+      element.textContent = text;
+      element.style.width = "";
+    }
+  };
+  element.dataset.scramble = String(window.requestAnimationFrame(tick));
+}
+
+function splitWords(heading, { highlight = [], wave = [] } = {}) {
+  const words = heading.textContent.trim().split(/\s+/);
+  heading.setAttribute("aria-label", words.join(" "));
+  heading.classList.add("fx-split");
+  heading.innerHTML = words.map((word, index) => {
+    const classes = ["w", highlight.includes(index) && "fx-hl", wave.includes(index) && "fx-wave"].filter(Boolean).join(" ");
+    const inner = wave.includes(index)
+      ? [...word].map(letter => `<span class="l">${letter}</span>`).join("")
+      : word;
+    return `<span class="${classes}" aria-hidden="true">${inner}</span>`;
+  }).join(" ");
+  heading.querySelectorAll(".w").forEach((word, index) => word.style.setProperty("--w", index));
+  heading.querySelectorAll(".l").forEach((letter, index) => letter.style.setProperty("--l", index));
+}
+
+function onEnter(element, callback, threshold = .15) {
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) callback();
+  }, { threshold }).observe(element);
+}
+
+function countUp(element, duration = 1400) {
+  const text = element.dataset.text || (element.dataset.text = element.textContent);
+  const start = performance.now();
+  const tick = now => {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - (1 - progress) ** 3;
+    element.textContent = text.replace(/\d[\d,]*/g, match => {
+      const value = Math.round(Number(match.replaceAll(",", "")) * eased);
+      return match.includes(",") ? value.toLocaleString("en-US") : String(value);
+    });
+    if (progress < 1) window.requestAnimationFrame(tick);
+  };
+  window.requestAnimationFrame(tick);
+}
+
+function addTilt(element, tiltX = 12, tiltY = 16) {
+  element.addEventListener("pointermove", event => {
+    const box = element.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    element.style.setProperty("--rx", `${(.5 - y) * tiltX}deg`);
+    element.style.setProperty("--ry", `${(x - .5) * tiltY}deg`);
+  });
+  element.addEventListener("pointerleave", () => {
+    element.style.setProperty("--rx", "0deg");
+    element.style.setProperty("--ry", "0deg");
+  });
+}
+
+function runWhileVisible(element, frame) {
+  let request = 0;
+  let visible = false;
+  const loop = time => {
+    frame(time);
+    request = window.requestAnimationFrame(loop);
+  };
+  const sync = () => {
+    window.cancelAnimationFrame(request);
+    if (visible && !document.hidden) request = window.requestAnimationFrame(loop);
+  };
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    sync();
+  }).observe(element);
+  document.addEventListener("visibilitychange", sync);
+}
+
+/* ===== Nav: sticky glass bar, progress, scrollspy, scramble ===== */
+const siteHeader = document.querySelector("header#top");
+const contactStrip = siteHeader.querySelector(".contact-strip");
+const scrollBar = siteHeader.querySelector(".scroll-progress");
+new ResizeObserver(() => siteHeader.style.setProperty("--strip", `${contactStrip.offsetHeight}px`)).observe(contactStrip);
+
+let scrollQueued = false;
+function updateScroll() {
+  scrollQueued = false;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  scrollBar.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+  siteHeader.classList.toggle("scrolled", window.scrollY > contactStrip.offsetHeight + 10);
+}
+window.addEventListener("scroll", () => {
+  if (scrollQueued) return;
+  scrollQueued = true;
+  window.requestAnimationFrame(updateScroll);
+}, { passive: true });
+updateScroll();
+
+const spyLinks = [...navigation.querySelectorAll('a[href^="#"]:not(.button)')];
+spyLinks.forEach(link => link.addEventListener("pointerenter", () => scrambleText(link, 450, true)));
+const spy = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+    if (!entry.isIntersecting) continue;
+    spyLinks.forEach(link => link.classList.toggle("active", link.hash === `#${entry.target.id}`));
+  }
+}, { rootMargin: "-45% 0px -50% 0px" });
+spyLinks.forEach(link => {
+  const section = document.querySelector(link.hash);
+  if (section) spy.observe(section);
+});
+spy.observe(document.querySelector(".hero"));
+
+/* ===== Buttons: magnetic pull + click ripple ===== */
+document.querySelectorAll(".button").forEach(button => {
+  if (finePointer.matches) {
+    button.addEventListener("pointermove", event => {
+      const box = button.getBoundingClientRect();
+      button.style.setProperty("--tx", `${(event.clientX - box.left - box.width / 2) * .25}px`);
+      button.style.setProperty("--ty", `${(event.clientY - box.top - box.height / 2) * .35}px`);
+    });
+    button.addEventListener("pointerleave", () => {
+      button.style.setProperty("--tx", "0px");
+      button.style.setProperty("--ty", "0px");
+    });
+  }
+  button.addEventListener("click", event => {
+    const box = button.getBoundingClientRect();
+    const size = Math.max(box.width, box.height) * 2;
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${event.clientX - box.left - size / 2}px;top:${event.clientY - box.top - size / 2}px`;
+    button.append(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
+  });
+});
+
+/* ===== Cursor ring ===== */
+if (finePointer.matches) {
+  const ring = document.createElement("div");
+  const dot = document.createElement("div");
+  ring.className = "cursor-ring";
+  dot.className = "cursor-dot";
+  ring.setAttribute("aria-hidden", "true");
+  dot.setAttribute("aria-hidden", "true");
+  document.body.append(ring, dot);
+  let targetX = -100;
+  let targetY = -100;
+  let ringX = -100;
+  let ringY = -100;
+  let following = false;
+  const follow = () => {
+    ringX += (targetX - ringX) * .2;
+    ringY += (targetY - ringY) * .2;
+    ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
+    if (Math.abs(targetX - ringX) + Math.abs(targetY - ringY) > .4) window.requestAnimationFrame(follow);
+    else following = false;
+  };
+  window.addEventListener("pointermove", event => {
+    targetX = event.clientX;
+    targetY = event.clientY;
+    dot.style.transform = `translate(${targetX}px, ${targetY}px)`;
+    ring.classList.add("on");
+    dot.classList.add("on");
+    ring.classList.toggle("hover", Boolean(event.target.closest?.("a, button, summary, .chips li")));
+    if (!following) {
+      following = true;
+      window.requestAnimationFrame(follow);
+    }
+  });
+  document.documentElement.addEventListener("mouseleave", () => {
+    ring.classList.remove("on");
+    dot.classList.remove("on");
+  });
+}
+
+/* ===== Programme ===== */
+const programme = document.querySelector("#programme");
+if (programme) {
+  splitWords(programme.querySelector("h2"), { highlight: [3] });
+  programme.querySelector(".eyebrow").classList.add("eyebrow-caret");
+}
+
+/* ===== Investment: rising particles + self-drawing growth chart ===== */
+const investment = document.querySelector("#investment");
+if (investment) {
+  splitWords(investment.querySelector("h2"), { wave: [2, 3] });
+  const metric = investment.querySelector(".metric strong");
+  onEnter(investment, () => countUp(metric, 1600));
+
+  const canvas = investment.querySelector(".invest-fx");
+  const paint = canvas.getContext("2d");
+  if (paint) {
+    let width = 0;
+    let height = 0;
+    let motes = [];
+    let chart = [];
+    let chartStart = 0;
+    const mote = anywhere => ({
+      x: Math.random() * width,
+      y: anywhere ? Math.random() * height : height + 10,
+      speed: .3 + Math.random(),
+      r: .8 + Math.random() * 2.2,
+      hot: Math.random() < .25,
+    });
+    const buildChart = () => {
+      const steps = Math.max(8, Math.round(width / 60));
+      let y = height * .88;
+      chart = Array.from({ length: steps + 1 }, (_, index) => {
+        if (index) y -= height * .55 / steps + (Math.random() - .42) * height * .14;
+        y = Math.max(height * .12, Math.min(height * .95, y));
+        return { x: index / steps * width, y };
+      });
+    };
+    new ResizeObserver(() => {
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      paint.setTransform(scale, 0, 0, scale, 0, 0);
+      motes = Array.from({ length: Math.round(width / 16) }, () => mote(true));
+      buildChart();
+      chartStart = 0;
+    }).observe(canvas);
+
+    runWhileVisible(investment, time => {
+      paint.clearRect(0, 0, width, height);
+      if (!chartStart || time - chartStart > 7000) {
+        chartStart = time;
+        buildChart();
+      }
+      const elapsed = (time - chartStart) / 1000;
+      const drawn = Math.min(elapsed / 3.5, 1) * (chart.length - 1);
+      const fade = elapsed > 5.5 ? Math.max(0, 1 - (elapsed - 5.5) / 1.2) : 1;
+      const whole = Math.floor(drawn);
+      const points = chart.slice(0, whole + 1);
+      if (whole < chart.length - 1) {
+        const a = chart[whole];
+        const b = chart[whole + 1];
+        const part = drawn - whole;
+        points.push({ x: a.x + (b.x - a.x) * part, y: a.y + (b.y - a.y) * part });
+      }
+      if (points.length > 1) {
+        const fill = paint.createLinearGradient(0, height * .1, 0, height);
+        fill.addColorStop(0, `rgba(67, 229, 236, ${.16 * fade})`);
+        fill.addColorStop(1, "rgba(67, 229, 236, 0)");
+        paint.beginPath();
+        points.forEach((point, index) => index ? paint.lineTo(point.x, point.y) : paint.moveTo(point.x, point.y));
+        paint.lineTo(points.at(-1).x, height);
+        paint.lineTo(points[0].x, height);
+        paint.closePath();
+        paint.fillStyle = fill;
+        paint.fill();
+        paint.beginPath();
+        points.forEach((point, index) => index ? paint.lineTo(point.x, point.y) : paint.moveTo(point.x, point.y));
+        paint.strokeStyle = `rgba(67, 229, 236, ${.6 * fade})`;
+        paint.lineWidth = 2.5;
+        paint.shadowColor = "#43e5ec";
+        paint.shadowBlur = 14;
+        paint.stroke();
+        const head = points.at(-1);
+        paint.fillStyle = `rgba(255, 255, 255, ${fade})`;
+        paint.beginPath();
+        paint.arc(head.x, head.y, 4.5, 0, Math.PI * 2);
+        paint.fill();
+        paint.shadowBlur = 0;
+      }
+      for (const particle of motes) {
+        particle.y -= particle.speed;
+        particle.x += Math.sin(time / 900 + particle.y / 60) * .3;
+        if (particle.y < -10) Object.assign(particle, mote(false));
+        const life = Math.min(1, particle.y / height + .2);
+        paint.fillStyle = particle.hot ? `rgba(255, 104, 27, ${.7 * life})` : `rgba(67, 229, 236, ${.6 * life})`;
+        paint.beginPath();
+        paint.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+        paint.fill();
+      }
+    });
+  }
+}
+
+/* ===== Partnerships ===== */
+const partnerships = document.querySelector("#partnerships");
+if (partnerships) {
+  partnerships.querySelector(".eyebrow").classList.add("eyebrow-caret");
+  const prices = [...partnerships.querySelectorAll(".price")];
+  onEnter(partnerships, () => prices.forEach(price => countUp(price, 1800)));
+  partnerships.querySelectorAll(".cards article").forEach(card => addTilt(card, 8, 10));
+}
+
+/* ===== Contact ===== */
+const contactPanel = document.querySelector(".contact-panel");
+if (contactPanel) {
+  const contactTitle = contactPanel.querySelector("h2");
+  onEnter(contactPanel, () => scrambleText(contactTitle, 900));
+  addTilt(contactPanel.querySelector(".contact-card"), 5, 7);
+}
+
+/* ===== Footer ===== */
+const siteFooter = document.querySelector(".site-footer");
+new IntersectionObserver(([entry]) => {
+  siteFooter.classList.toggle("foot-in", entry.isIntersecting);
+}, { threshold: .15 }).observe(siteFooter);
