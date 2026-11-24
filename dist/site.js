@@ -671,7 +671,13 @@ window.addEventListener("scroll", () => {
 updateScroll();
 
 const spyLinks = [...navigation.querySelectorAll(':scope > a[href^="#"]:not(.button)')];
-spyLinks.forEach(link => link.addEventListener("pointerenter", () => scrambleText(link, 450, true)));
+// Don't restart the scramble while one is still running, or the label never settles.
+spyLinks.forEach(link => link.addEventListener("pointerenter", () => {
+  if (link.dataset.scrambling) return;
+  link.dataset.scrambling = "1";
+  scrambleText(link, 450, true);
+  window.setTimeout(() => delete link.dataset.scrambling, 650);
+}));
 const spy = new IntersectionObserver(entries => {
   for (const entry of entries) {
     if (!entry.isIntersecting) continue;
@@ -722,29 +728,62 @@ if (finePointer.matches) {
   let ringX = -100;
   let ringY = -100;
   let following = false;
-  const follow = () => {
-    ringX += (targetX - ringX) * .2;
-    ringY += (targetY - ringY) * .2;
+  let lastFrame = 0;
+  let shown = false;
+  let hovering = false;
+  let unhoverTimer = 0;
+  // Time-based easing: the ring closes ~35% of the gap per 60Hz frame on any refresh rate.
+  const follow = now => {
+    const frames = lastFrame ? Math.min((now - lastFrame) / 16.67, 4) : 1;
+    lastFrame = now;
+    const ease = 1 - (1 - .35) ** frames;
+    ringX += (targetX - ringX) * ease;
+    ringY += (targetY - ringY) * ease;
     ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
     if (Math.abs(targetX - ringX) + Math.abs(targetY - ringY) > .4) window.requestAnimationFrame(follow);
-    else following = false;
+    else {
+      following = false;
+      lastFrame = 0;
+    }
   };
+  function setShown(value) {
+    if (shown === value) return;
+    shown = value;
+    ring.classList.toggle("on", value);
+    dot.classList.toggle("on", value);
+  }
+  // Only change the hover look when the state really changes, and wait briefly before
+  // dropping it so the ring doesn't pulse in the small gaps between nav links.
+  function setHover(value) {
+    window.clearTimeout(unhoverTimer);
+    if (value === hovering) return;
+    if (value) {
+      hovering = true;
+      ring.classList.add("hover");
+    } else {
+      unhoverTimer = window.setTimeout(() => {
+        hovering = false;
+        ring.classList.remove("hover");
+      }, 120);
+    }
+  }
   window.addEventListener("pointermove", event => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
     targetX = event.clientX;
     targetY = event.clientY;
     dot.style.transform = `translate(${targetX}px, ${targetY}px)`;
-    ring.classList.add("on");
-    dot.classList.add("on");
-    ring.classList.toggle("hover", Boolean(event.target.closest?.("a, button, summary, .chips li")));
+    if (!shown) {
+      ringX = targetX;
+      ringY = targetY;
+    }
+    setShown(true);
+    setHover(Boolean(event.target.closest?.("a, button, summary, .chips li")));
     if (!following) {
       following = true;
       window.requestAnimationFrame(follow);
     }
   });
-  document.documentElement.addEventListener("mouseleave", () => {
-    ring.classList.remove("on");
-    dot.classList.remove("on");
-  });
+  document.documentElement.addEventListener("mouseleave", () => setShown(false));
 }
 
 /* ===== Programme ===== */
@@ -873,6 +912,7 @@ if (partnerships) {
   let index = 0;
   let paused = false;
   let moving = false;
+  let queued = 0;
 
   const step = () => {
     const [first, second] = track.children;
@@ -883,7 +923,11 @@ if (partnerships) {
     track.style.transform = `translateX(${-index * step()}px)`;
   }
   function go(delta) {
-    if (moving) return;
+    // A click during an auto-slide is remembered and runs as soon as that slide ends.
+    if (moving) {
+      queued = delta;
+      return;
+    }
     if (delta < 0 && index === 0) {
       index = count;
       place(false);
@@ -901,6 +945,12 @@ if (partnerships) {
     if (index >= count) {
       index -= count;
       place(false);
+    }
+    if (queued) {
+      const next = queued;
+      queued = 0;
+      void track.offsetWidth;
+      go(next);
     }
   }
   track.addEventListener("transitionend", event => {
@@ -1051,12 +1101,14 @@ if (account) {
   document.addEventListener("click", event => {
     if (!account.contains(event.target)) setPanel(false);
   });
-  account.addEventListener("keydown", event => {
+  // Escape closes the dropdown wherever focus is (capture phase, so it runs before the mobile-menu handler).
+  document.addEventListener("keydown", event => {
     if (event.key !== "Escape" || panel.hidden) return;
-    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const hadFocus = account.contains(document.activeElement);
     setPanel(false);
-    toggle.focus();
-  });
+    if (hadFocus) toggle.focus();
+  }, true);
   document.querySelectorAll("[data-open]").forEach(button => {
     button.addEventListener("click", () => openDialog(button.dataset.open));
   });

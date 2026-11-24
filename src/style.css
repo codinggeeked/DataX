@@ -335,9 +335,8 @@ main section[id], #day-one, #day-two { scroll-margin-top: 92px; }
 .wordmark span { display: inline-block; animation: nav-x 5s steps(1) infinite; }
 .wordmark:hover span { animation: nav-xspin .7s cubic-bezier(.3,1.5,.5,1); }
 nav a { white-space: nowrap; }
-nav a:not(.button) { position: relative; padding-block: 6px; transition: color .25s, transform .25s cubic-bezier(.3,1.6,.5,1), text-shadow .25s; }
+nav a:not(.button) { position: relative; padding-block: 6px; transition: color .25s, text-shadow .25s; }
 nav a:not(.button)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), var(--orange)); box-shadow: 0 0 10px #43e5ec; transform: scaleX(0); transition: transform .35s cubic-bezier(.3,1.4,.5,1); }
-nav a:not(.button):hover { transform: translateY(-2px); }
 nav a:not(.button):hover::after, nav a.active::after { transform: scaleX(1); }
 nav a.active { color: var(--cyan); text-shadow: 0 0 14px #43e5ec99; }
 nav .event-platform { animation: nav-cta 2.4s ease-in-out infinite; }

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tailwindcss -i src/style.css -o dist/style.css --minify && node scripts/build.mjs",
-    "check": "node --check src/site.js && node --check scripts/build.mjs"
+    "serve": "node scripts/serve.mjs",
+    "check":"node --check src/site.js && node --check scripts/build.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/nunito": "5.3.0",
