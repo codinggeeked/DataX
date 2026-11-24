@@ -85,7 +85,7 @@ if (intro) {
 
 const menu = document.querySelector(".menu");
 const navigation = document.querySelector("#navigation");
-const desktop = window.matchMedia("(min-width: 52rem)");
+const desktop = window.matchMedia("(min-width: 64rem)");
 
 function setMenu(open) {
   menu.setAttribute("aria-expanded", String(open));
@@ -144,6 +144,100 @@ document.querySelectorAll("[data-show-day]").forEach(link => {
     target.focus({ preventScroll: true });
   });
 });
+
+/* ===== Programme: live "happening now" view ===== */
+const nowBar = document.querySelector(".now-bar");
+if (nowBar) {
+  const params = new URLSearchParams(location.search);
+  const eventDays = { "2027-03-30": "one", "2027-03-31": "two" };
+  const dayNames = { one: "Day 1", two: "Day 2" };
+  const toMinutes = value => {
+    const [hours, minutes] = value.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+  const gaborone = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Gaborone", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  });
+  const sessionsFor = day => [...document.querySelectorAll(`#day-${day} details[data-start]`)];
+  const titleOf = session => session.querySelector(".slot-title").textContent;
+  const field = name => nowBar.querySelector(`[data-now="${name}"]`);
+  const progress = nowBar.querySelector(".now-progress span");
+  let firstRender = true;
+
+  // Real event days use the real date; any other day is shown as an event-day preview.
+  // ?day=one|two and ?time=HH:MM override the clock for testing.
+  function eventClock() {
+    const parts = Object.fromEntries(gaborone.formatToParts(new Date()).map(part => [part.type, part.value]));
+    const realDay = eventDays[`${parts.year}-${parts.month}-${parts.day}`];
+    const forcedDay = ["one", "two"].includes(params.get("day")) ? params.get("day") : null;
+    const forcedTime = /^\d{1,2}:\d{2}$/.test(params.get("time") || "") ? params.get("time") : null;
+    const time = (forcedTime || `${parts.hour}:${parts.minute}`).padStart(5, "0");
+    return { day: forcedDay || realDay || "one", time, minutes: toMinutes(time), preview: !realDay || Boolean(forcedDay || forcedTime) };
+  }
+
+  function mark(session, kind, text) {
+    session.classList.add(`is-${kind}`);
+    const tag = document.createElement("span");
+    tag.className = `status ${kind}`;
+    tag.textContent = text;
+    session.querySelector("summary").append(tag);
+  }
+
+  function renderLive() {
+    const { day, time, minutes, preview } = eventClock();
+    for (const session of [...sessionsFor("one"), ...sessionsFor("two")]) {
+      session.classList.remove("is-past", "is-now", "is-next");
+      session.querySelectorAll(".status").forEach(tag => tag.remove());
+    }
+    const sessions = sessionsFor(day);
+    const current = sessions.find(session => minutes >= toMinutes(session.dataset.start) && minutes < toMinutes(session.dataset.end));
+    const next = sessions.find(session => toMinutes(session.dataset.start) > minutes);
+    sessions.forEach(session => session.classList.toggle("is-past", toMinutes(session.dataset.end) <= minutes));
+    if (current) mark(current, "now", "Now");
+    if (next) mark(next, "next", "Next");
+
+    dayButtons.forEach(button => button.classList.toggle("live", button.dataset.day === day));
+    nowBar.classList.toggle("closed", !current);
+    field("day").textContent = dayNames[day];
+    field("clock").textContent = time;
+    nowBar.querySelector(".now-note").hidden = !preview;
+
+    let share = 0;
+    if (current) {
+      const start = toMinutes(current.dataset.start);
+      share = (minutes - start) / (toMinutes(current.dataset.end) - start);
+      field("state").textContent = "Happening now";
+      field("title").textContent = titleOf(current);
+      field("next").textContent = next ? `Up next at ${next.dataset.start}: ${titleOf(next)}` : "Last session of the day";
+    } else if (next) {
+      const opening = next === sessions[0];
+      field("state").textContent = opening ? "Opening soon" : "Up next";
+      field("title").textContent = opening ? `Doors open at ${next.dataset.start}` : titleOf(next);
+      field("next").textContent = `First up at ${next.dataset.start}: ${titleOf(next)}`;
+    } else {
+      share = 1;
+      field("state").textContent = "Day closed";
+      field("title").textContent = day === "one" ? "That’s a wrap for Day 1" : "That’s a wrap for DataX 2027";
+      field("next").textContent = day === "one"
+        ? `Day 2 opens at ${sessionsFor("two")[0].dataset.start} on 31 March`
+        : "Thank you for joining us in Gaborone.";
+    }
+    progress.style.setProperty("--p", `${Math.round(share * 100)}%`);
+
+    if (firstRender) {
+      const focus = current || next || sessions[0];
+      sessions.forEach(session => { session.open = session === focus; });
+      firstRender = false;
+    }
+    return day;
+  }
+
+  const liveDay = renderLive();
+  if (location.hash !== "#day-one" && location.hash !== "#day-two") showDay(liveDay);
+  nowBar.hidden = false;
+  window.setInterval(renderLive, 30000);
+}
 
 const eventStart = Date.parse("2027-03-30T00:00:00+02:00");
 const clock = document.querySelector(".clock");
@@ -576,7 +670,7 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 updateScroll();
 
-const spyLinks = [...navigation.querySelectorAll('a[href^="#"]:not(.button)')];
+const spyLinks = [...navigation.querySelectorAll(':scope > a[href^="#"]:not(.button)')];
 spyLinks.forEach(link => link.addEventListener("pointerenter", () => scrambleText(link, 450, true)));
 const spy = new IntersectionObserver(entries => {
   for (const entry of entries) {
@@ -763,9 +857,222 @@ if (investment) {
 const partnerships = document.querySelector("#partnerships");
 if (partnerships) {
   partnerships.querySelector(".eyebrow").classList.add("eyebrow-caret");
-  const prices = [...partnerships.querySelectorAll(".price")];
-  onEnter(partnerships, () => prices.forEach(price => countUp(price, 1800)));
-  partnerships.querySelectorAll(".cards article").forEach(card => addTilt(card, 8, 10));
+
+  // Partner slider: one logo per step, loops forever, pauses on hover/focus.
+  // Auto-advance is off for reduced motion; the arrows always work.
+  const slider = partnerships.querySelector(".logo-slider");
+  const track = slider.querySelector(".logo-track");
+  const originals = [...track.children];
+  const count = originals.length;
+  originals.forEach(logo => {
+    const copy = logo.cloneNode(true);
+    copy.setAttribute("aria-hidden", "true");
+    track.append(copy);
+  });
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let index = 0;
+  let paused = false;
+  let moving = false;
+
+  const step = () => {
+    const [first, second] = track.children;
+    return second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+  };
+  function place(animate) {
+    track.classList.toggle("animate", animate);
+    track.style.transform = `translateX(${-index * step()}px)`;
+  }
+  function go(delta) {
+    if (moving) return;
+    if (delta < 0 && index === 0) {
+      index = count;
+      place(false);
+      void track.offsetWidth;
+    }
+    index += delta;
+    moving = true;
+    place(true);
+    // Fallback in case transitionend never fires (e.g. transform did not change).
+    window.setTimeout(settle, 900);
+  }
+  function settle() {
+    if (!moving) return;
+    moving = false;
+    if (index >= count) {
+      index -= count;
+      place(false);
+    }
+  }
+  track.addEventListener("transitionend", event => {
+    if (event.target === track) settle();
+  });
+
+  slider.querySelector(".prev").addEventListener("click", () => go(-1));
+  slider.querySelector(".next").addEventListener("click", () => go(1));
+  slider.addEventListener("pointerenter", () => { paused = true; });
+  slider.addEventListener("pointerleave", () => { paused = false; });
+  slider.addEventListener("focusin", () => { paused = true; });
+  slider.addEventListener("focusout", () => { paused = false; });
+  new ResizeObserver(() => place(false)).observe(slider);
+
+  slider.querySelectorAll(".slider-arrow").forEach(arrow => { arrow.hidden = false; });
+  slider.classList.add("ready");
+  place(false);
+  window.setInterval(() => {
+    if (!paused && !document.hidden && !reduceMotion.matches) go(1);
+  }, 2600);
+}
+
+/* ===== Speakers ===== */
+const speakers = document.querySelector("#speakers");
+if (speakers) {
+  speakers.querySelector(".eyebrow").classList.add("eyebrow-caret");
+  speakers.querySelectorAll(".speaker").forEach((card, index) => {
+    card.style.setProperty("--i", index);
+    addTilt(card, 6, 8);
+  });
+}
+
+/* ===== Account: register / log in ===== */
+const account = document.querySelector(".account");
+if (account) {
+  const toggle = account.querySelector(".account-toggle");
+  const label = account.querySelector(".account-label");
+  const panel = account.querySelector(".account-menu");
+  const guestItems = panel.querySelector(".guest-items");
+  const memberItems = panel.querySelector(".member-items");
+  const dialogs = { register: document.querySelector("#register-dialog"), login: document.querySelector("#login-dialog") };
+  const memberKey = "datax-member-v1";
+  let member = null;
+  try {
+    const saved = JSON.parse(localStorage.getItem(memberKey));
+    if (saved && typeof saved.name === "string" && typeof saved.email === "string") member = saved;
+  } catch {
+    // Signed-out view if storage is unavailable or unreadable.
+  }
+
+  function setPanel(open) {
+    toggle.setAttribute("aria-expanded", String(open));
+    panel.hidden = !open;
+  }
+
+  function renderMember() {
+    label.textContent = member ? `Hi, ${member.name}` : "Join DataX";
+    guestItems.hidden = Boolean(member);
+    memberItems.hidden = !member;
+    memberItems.querySelector(".member-email").textContent = member ? member.email : "";
+  }
+
+  function saveMember(next) {
+    member = next;
+    try {
+      if (next) localStorage.setItem(memberKey, JSON.stringify(next));
+      else localStorage.removeItem(memberKey);
+    } catch {
+      // Sign-in still applies to this page view.
+    }
+    renderMember();
+  }
+
+  function openDialog(name) {
+    setPanel(false);
+    Object.values(dialogs).forEach(dialog => { if (dialog.open) dialog.close(); });
+    const dialog = dialogs[name];
+    dialog.querySelector("form").hidden = false;
+    dialog.querySelector(".modal-done").hidden = true;
+    dialog.querySelector(".form-error").hidden = true;
+    dialog.showModal();
+  }
+
+  function fieldName(input) {
+    return input.closest("label")?.firstChild?.textContent.trim() || "This field";
+  }
+
+  function validate(form) {
+    const error = form.querySelector(".form-error");
+    form.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"));
+    let problem = [...form.elements].find(input => input.willValidate && !input.checkValidity());
+    let message = "";
+    if (problem) {
+      message = problem.type === "checkbox"
+        ? "Please agree to be contacted so we can confirm your place."
+        : `${fieldName(problem)}: ${problem.validationMessage}`;
+    } else if (form.elements.days && ![...form.querySelectorAll('[name="days"]')].some(box => box.checked)) {
+      problem = form.querySelector('[name="days"]');
+      message = "Choose at least one day to attend.";
+    }
+    if (!problem) {
+      error.hidden = true;
+      return true;
+    }
+    error.textContent = message;
+    error.hidden = false;
+    problem.setAttribute("aria-invalid", "true");
+    problem.focus();
+    return false;
+  }
+
+  function showDone(dialog, values) {
+    for (const [key, value] of Object.entries(values)) dialog.querySelector(`[data-done="${key}"]`).textContent = value;
+    dialog.querySelector("form").hidden = true;
+    const done = dialog.querySelector(".modal-done");
+    done.hidden = false;
+    done.querySelector(".button").focus();
+  }
+
+  const registerForm = dialogs.register.querySelector("form");
+  registerForm.addEventListener("submit", event => {
+    event.preventDefault();
+    if (!validate(registerForm)) return;
+    const data = new FormData(registerForm);
+    const name = data.get("first").trim();
+    const days = data.getAll("days");
+    const ref = `DX27-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    saveMember({ name, email: data.get("email").trim(), role: data.get("role"), days, ref });
+    showDone(dialogs.register, { name, days: days.join(" and "), ref });
+    registerForm.reset();
+  });
+
+  const loginForm = dialogs.login.querySelector("form");
+  loginForm.addEventListener("submit", event => {
+    event.preventDefault();
+    if (!validate(loginForm)) return;
+    const email = loginForm.elements.email.value.trim();
+    const local = email.split("@")[0].split(/[._+-]/)[0] || "there";
+    const name = member && member.email.toLowerCase() === email.toLowerCase()
+      ? member.name
+      : local.charAt(0).toUpperCase() + local.slice(1, 18);
+    saveMember({ ...(member?.email.toLowerCase() === email.toLowerCase() ? member : {}), name, email });
+    showDone(dialogs.login, { name });
+    loginForm.reset();
+  });
+
+  toggle.addEventListener("click", () => setPanel(panel.hidden));
+  document.addEventListener("click", event => {
+    if (!account.contains(event.target)) setPanel(false);
+  });
+  account.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || panel.hidden) return;
+    event.stopPropagation();
+    setPanel(false);
+    toggle.focus();
+  });
+  document.querySelectorAll("[data-open]").forEach(button => {
+    button.addEventListener("click", () => openDialog(button.dataset.open));
+  });
+  memberItems.querySelector("a").addEventListener("click", () => setPanel(false));
+  memberItems.querySelector("[data-signout]").addEventListener("click", () => {
+    saveMember(null);
+    setPanel(false);
+    toggle.focus();
+  });
+  for (const dialog of Object.values(dialogs)) {
+    dialog.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => dialog.close()));
+    dialog.addEventListener("click", event => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+  renderMember();
 }
 
 /* ===== Contact ===== */

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs && tailwindcss -i src/style.css -o dist/style.css --minify",
+    "build": "tailwindcss -i src/style.css -o dist/style.css --minify && node scripts/build.mjs",
     "check": "node --check src/site.js && node --check scripts/build.mjs"
   },
   "devDependencies": {

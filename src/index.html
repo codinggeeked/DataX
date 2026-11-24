@@ -8,19 +8,34 @@
 <meta name="theme-color" content="#061020">
 <meta name="description" content="DataX Botswana brings together government, industry, innovators and investors for a two-day data intelligence summit.">
 <title>DataX Botswana | From Connectivity to Intelligence</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 <script defer src="site.js"></script>
 </head>
 <body>
-<div class="intro" aria-hidden="true"><canvas class="intro-rain"></canvas><p class="intro-mark">Data<span>X</span></p><p class="intro-hint">Click or press any key to skip</p></div>
+<div class="intro" aria-hidden="true"><canvas class="intro-rain"></canvas><p class="intro-mark">Data<span>X</span><small>Botswana</small></p><p class="intro-hint">Click or press any key to skip</p></div>
 <a class="skip" href="#main">Skip to content</a>
 <header id="top" tabindex="-1" class="border-b border-[#193149] bg-deep text-white">
   <div class="contact-strip"><div class="wrap"><a href="#contact">{{icon:envelope}} <span>Contact DataX</span></a><div class="event-location"><span aria-hidden="true">·</span></div><div class="social"><a href="https://bw.linkedin.com/company/serge365" aria-label="Serge365 on LinkedIn">{{icon:linkedin}}</a><a href="https://wa.me/26775331810?text=Hello%2C%20I%20have%20a%20question%20about%20DataX%20Botswana." aria-label="Contact Serge365 about DataX on WhatsApp">{{icon:whatsapp}}</a></div></div></div>
-  <div class="wrap nav flex min-h-17 flex-wrap items-center justify-between md:min-h-20 md:flex-nowrap md:gap-8">
-    <a class="wordmark" href="#top" aria-label="DataX Botswana home">Data<span>X</span></a>
+  <div class="wrap nav flex min-h-17 flex-wrap items-center justify-between md:min-h-20 lg:flex-nowrap lg:gap-8">
+    <a class="wordmark" href="#top" aria-label="DataX Botswana home"><b>Data<span>X</span></b><small>Botswana</small></a>
     <button class="menu" aria-expanded="false" aria-controls="navigation" hidden>{{icon:bars}}<span>Menu</span></button>
     <nav id="navigation" aria-label="Main navigation">
-      <a href="#about">About</a><a href="#experience">Experience</a><a href="#programme">Programme</a><a href="#investment">Investment</a><a href="#partnerships">Partnerships</a><a class="button small event-platform" href="#experience">Event Platform</a>
+      <a href="#experience">Experience</a><a href="#about">About</a><a href="#programme">Programme</a><a href="#speakers">Speakers</a><a href="#investment">Investment</a><a href="#partnerships">Partnerships</a>
+      <div class="account">
+        <button type="button" class="button small account-toggle" aria-expanded="false" aria-controls="account-menu"><span class="account-label">Join DataX</span>{{icon:chevron}}</button>
+        <div class="account-menu" id="account-menu" hidden>
+          <div class="guest-items">
+            <button type="button" data-open="register">{{icon:userplus}} Register</button>
+            <button type="button" data-open="login">{{icon:user}} Log in</button>
+          </div>
+          <div class="member-items" hidden>
+            <small>Signed in as <span class="member-email"></span></small>
+            <a href="#programme">{{icon:clock}} Today’s programme</a>
+            <button type="button" data-signout>{{icon:signout}} Sign out</button>
+          </div>
+        </div>
+      </div>
     </nav>
   </div>
   <div class="scroll-progress" aria-hidden="true"></div>
@@ -63,7 +78,7 @@
   <section class="section dark" id="about" data-enter="top">
     <canvas class="about-net" aria-hidden="true"></canvas>
     <div class="wrap split grid items-center md:grid-cols-2">
-      <figure><div class="holo"><img src="stage.webp" alt="Concept rendering of the DataX conference stage" width="771" height="400" loading="lazy"><span class="wipe" aria-hidden="true"></span></div><figcaption>Proposed DataX conference stage</figcaption></figure>
+      <figure><div class="holo"><img src="stage.webp" alt="The DataX conference stage" width="771" height="400" loading="lazy"><span class="wipe" aria-hidden="true"></span></div></figure>
       <div><p class="eyebrow">ABOUT DATAX</p><h2>Turning data into economic value</h2><p>DataX connects public policy with the people building, buying and funding digital solutions. It gives Botswana’s core industries a place to put data to work and explore opportunities for regional digital trade.</p>
       <ul class="chips" aria-label="Industry sectors"><li>Mining</li><li>Finance</li><li>Agriculture</li><li>Health</li><li>Tourism</li><li>Construction</li></ul>
       <p class="policy">The programme draws on Vision 2036, SmartBots, SADC digital priorities and the AfCFTA digital trade agenda.</p></div>
@@ -72,12 +87,63 @@
   <section class="section wrap" id="programme" data-enter="left">
     <div class="prog-ghost" aria-hidden="true"><span>DAY 01 — DAY 02 — DATAX — </span><span>DAY 01 — DAY 02 — DATAX — </span></div>
     <div class="prog-ghost low" aria-hidden="true"><span>POLICY · INFRASTRUCTURE · TRADE · INVESTMENT · </span><span>POLICY · INFRASTRUCTURE · TRADE · INVESTMENT · </span></div>
-    <div class="programme grid md:grid-cols-[.73fr_1fr]"><div><p class="eyebrow">PROPOSED PROGRAMME</p><h2>Two days at DataX</h2><p>Start with policy and infrastructure. Then explore practical applications, see technology in action and meet potential partners.</p></div>
+    <div class="programme grid md:grid-cols-[.73fr_1fr]"><div><p class="eyebrow">EVENT PROGRAMME</p><h2>Two days at DataX</h2><p>Start with policy and infrastructure. Then explore practical applications, see technology in action and meet potential partners.</p><p>Follow the live view to see what is on stage right now and what comes next. All times are Gaborone time.</p></div>
     <div>
+      <div class="now-bar" hidden>
+        <p class="now-label"><span class="now-dot" aria-hidden="true"></span><span data-now="state">Happening now</span><span aria-hidden="true">·</span><span data-now="day">Day 1</span><span aria-hidden="true">·</span><time data-now="clock">09:00</time></p>
+        <p class="now-title" data-now="title"></p>
+        <div class="now-progress" aria-hidden="true"><span></span></div>
+        <p class="now-next" data-now="next"></p>
+        <p class="now-note" hidden>Event-day preview: shown as if today were the event.</p>
+      </div>
       <div class="tabs" hidden role="group" aria-label="Choose programme day"><button type="button" aria-controls="day-one" aria-pressed="true" data-day="one">Day 1</button><button type="button" aria-controls="day-two" aria-pressed="false" data-day="two">Day 2</button></div>
-      <div class="schedule" id="day-one"><h3>Policy and digital infrastructure</h3><details open><summary>Opening and orientation</summary><p>What DataX aims to achieve and what delegates can expect.</p></details><details><summary>Policy to practice</summary><p>Discuss readiness and responsibilities for digital services and cybersecurity implementation.</p></details><details><summary>Building the digital backbone</summary><p>Explore SmartBots, fibre, data centres, cloud and SADC digital integration.</p></details><details><summary>Policy roundtable</summary><p>Identify priorities and practical actions that can be tracked after the summit.</p></details></div>
-      <div class="schedule" id="day-two"><h3>Partnerships and investment</h3><details open><summary>Data, trade and enterprise</summary><p>Explore digital trade, enterprise case studies, cloud and data sovereignty, and fintech and payments.</p></details><details><summary>Live expo and demonstrations</summary><p>Experience immersive and VR demonstrations, creator-led showcases and facilitated networking.</p></details><details><summary>Investor matchmaking</summary><p>Meet pre-qualified ventures and capture opportunities for investment and commercial partnerships.</p></details></div>
+      <div class="schedule" id="day-one"><h3>Policy and digital infrastructure</h3>
+        <details data-start="08:00" data-end="09:00" open><summary><span class="slot-time">08:00–09:00</span><span class="slot-title">Registration and welcome coffee</span></summary><p>Collect your badge, meet exhibitors and settle in before the opening.</p></details>
+        <details data-start="09:00" data-end="09:45"><summary><span class="slot-time">09:00–09:45</span><span class="slot-title">Opening and orientation</span></summary><p>What DataX aims to achieve and what delegates can expect.</p></details>
+        <details data-start="09:45" data-end="10:30"><summary><span class="slot-time">09:45–10:30</span><span class="slot-title">Keynote: Connectivity for every community</span></summary><p>Elon Musk on satellite internet and what universal connectivity could unlock for Botswana.</p></details>
+        <details data-start="10:30" data-end="11:00"><summary><span class="slot-time">10:30–11:00</span><span class="slot-title">Networking break</span></summary><p>Coffee and conversations in the expo hall.</p></details>
+        <details data-start="11:00" data-end="12:30"><summary><span class="slot-time">11:00–12:30</span><span class="slot-title">Policy to practice</span></summary><p>Discuss readiness and responsibilities for digital services and cybersecurity implementation.</p></details>
+        <details data-start="12:30" data-end="13:30"><summary><span class="slot-time">12:30–13:30</span><span class="slot-title">Lunch and expo</span></summary><p>Lunch is served while the technology expo stays open.</p></details>
+        <details data-start="13:30" data-end="14:15"><summary><span class="slot-time">13:30–14:15</span><span class="slot-title">Keynote: AI factories and accelerated computing for Africa</span></summary><p>Jensen Huang on the computing infrastructure behind AI and how Botswana can build on it.</p></details>
+        <details data-start="14:15" data-end="15:30"><summary><span class="slot-time">14:15–15:30</span><span class="slot-title">Building the digital backbone</span></summary><p>Explore SmartBots, fibre, data centres, cloud and SADC digital integration.</p></details>
+        <details data-start="15:30" data-end="16:30"><summary><span class="slot-time">15:30–16:30</span><span class="slot-title">Policy roundtable</span></summary><p>Identify priorities and practical actions that can be tracked after the summit.</p></details>
+        <details data-start="16:30" data-end="17:30"><summary><span class="slot-time">16:30–17:30</span><span class="slot-title">Day 1 wrap-up and networking</span></summary><p>Key takeaways from the day, followed by drinks with speakers and delegates.</p></details>
+      </div>
+      <div class="schedule" id="day-two"><h3>Partnerships and investment</h3>
+        <details data-start="08:00" data-end="09:00" open><summary><span class="slot-time">08:00–09:00</span><span class="slot-title">Registration and coffee</span></summary><p>Badge collection for new delegates and an early look at the expo.</p></details>
+        <details data-start="09:00" data-end="09:45"><summary><span class="slot-time">09:00–09:45</span><span class="slot-title">Keynote: Open AI and the next billion users</span></summary><p>Mark Zuckerberg on open AI models, digital platforms and building for emerging markets.</p></details>
+        <details data-start="09:45" data-end="11:15"><summary><span class="slot-time">09:45–11:15</span><span class="slot-title">Data, trade and enterprise</span></summary><p>Explore digital trade, enterprise case studies, cloud and data sovereignty, and fintech and payments.</p></details>
+        <details data-start="11:15" data-end="11:30"><summary><span class="slot-time">11:15–11:30</span><span class="slot-title">Short break</span></summary><p>Refreshments in the expo hall.</p></details>
+        <details data-start="11:30" data-end="13:00"><summary><span class="slot-time">11:30–13:00</span><span class="slot-title">Live expo and demonstrations</span></summary><p>Experience immersive and VR demonstrations, creator-led showcases and facilitated networking.</p></details>
+        <details data-start="13:00" data-end="14:00"><summary><span class="slot-time">13:00–14:00</span><span class="slot-title">Lunch</span></summary><p>Lunch and informal networking.</p></details>
+        <details data-start="14:00" data-end="16:30"><summary><span class="slot-time">14:00–16:30</span><span class="slot-title">Investor matchmaking</span></summary><p>Meet pre-qualified ventures and capture opportunities for investment and commercial partnerships.</p></details>
+        <details data-start="16:30" data-end="17:00"><summary><span class="slot-time">16:30–17:00</span><span class="slot-title">Closing and next steps</span></summary><p>Commitments, follow-up actions and the road to DataX 2028.</p></details>
+      </div>
     </div></div>
+  </section>
+  <section class="section speakers" id="speakers" data-enter="bottom">
+    <div class="wrap">
+      <p class="eyebrow">SPEAKERS</p>
+      <h2>Voices shaping the digital economy</h2>
+      <p class="section-intro">Global technology leaders join policymakers, founders and investors on the DataX stage.</p>
+      <div class="speaker-grid">
+        <article class="speaker">
+          <figure class="speaker-photo"><img src="speakers/musk.jpg" alt="Elon Musk" width="500" height="667" loading="lazy"><span class="speaker-tag">KEYNOTE</span></figure>
+          <div class="speaker-info"><h3>Elon Musk</h3><p class="speaker-role">Founder and CEO, SpaceX</p><p class="speaker-talk">Connectivity for every community</p><a class="speaker-slot" href="#day-one" data-show-day="one">{{icon:clock}} Day 1 · 09:45</a>
+          <p class="photo-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Elon_Musk_-_54820081119_(3x4_cropped,_Rule_of_thirds).jpg">Gage Skidmore</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p></div>
+        </article>
+        <article class="speaker">
+          <figure class="speaker-photo"><img src="speakers/huang.jpg" alt="Jensen Huang" width="425" height="530" loading="lazy"><span class="speaker-tag">KEYNOTE</span></figure>
+          <div class="speaker-info"><h3>Jensen Huang</h3><p class="speaker-role">Founder and CEO, NVIDIA</p><p class="speaker-talk">AI factories and accelerated computing for Africa</p><a class="speaker-slot" href="#day-one" data-show-day="one">{{icon:clock}} Day 1 · 13:30</a>
+          <p class="photo-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:P20261008DT-1143_(55585899425)_(cropped).jpg">The White House</a>, public domain</p></div>
+        </article>
+        <article class="speaker">
+          <figure class="speaker-photo"><img src="speakers/zuckerberg.jpg" alt="Mark Zuckerberg" width="414" height="552" loading="lazy"><span class="speaker-tag">KEYNOTE</span></figure>
+          <div class="speaker-info"><h3>Mark Zuckerberg</h3><p class="speaker-role">Founder and CEO, Meta</p><p class="speaker-talk">Open AI and the next billion users</p><a class="speaker-slot" href="#day-two" data-show-day="two">{{icon:clock}} Day 2 · 09:00</a>
+          <p class="photo-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:P20260929DT-1655_(55561811540)_(cropped_2).jpg">The White House</a>, public domain</p></div>
+        </article>
+      </div>
+    </div>
   </section>
   <section class="section dark" id="investment" data-enter="bottom">
     <canvas class="invest-fx" aria-hidden="true"></canvas>
@@ -94,23 +160,39 @@
       <article><h3>Follow up after the summit</h3><p>Continue promising conversations with founders, corporate buyers and potential commercial partners.</p></article>
     </div>
   </section>
-  <section class="section wrap" id="partnerships" data-enter="right"><div class="spon-fx" aria-hidden="true"><span></span><span></span></div><p class="eyebrow">PARTNERSHIPS</p><h2>Sponsor DataX</h2><p class="section-intro">The proposal outlines two opportunities to showcase your organisation, contribute to the programme and meet potential partners.</p><div class="cards mt-8 grid gap-5 md:grid-cols-2">
-  <article><h3>Silver Sponsor</h3><p class="price">P2,500,000</p><details><summary>View package highlights</summary><ul><li>40 all-access VIP passes</li><li>Premium exhibition space and stage branding</li><li>Panel participation and industry masterclass</li><li>Business introductions and post-event reporting</li></ul></details></article>
-  <article><h3>Title Sponsor</h3><p class="price">P4,000,000</p><details><summary>View package highlights</summary><ul><li>60 all-access VIP passes</li><li>Official naming rights and venue-wide branding</li><li>Keynote and sponsor-led masterclass opportunities</li><li>Priority introductions and post-event follow-up</li></ul></details></article>
-  </div></section>
+  <section class="section wrap" id="partnerships" data-enter="right"><div class="spon-fx" aria-hidden="true"><span></span><span></span></div>
+    <p class="eyebrow">PARTNERSHIPS</p><h2>Our partners</h2><p class="section-intro">Global technology, media and finance leaders supporting DataX.</p>
+    <div class="logo-slider" role="region" aria-roledescription="carousel" aria-label="Partner logos">
+      <button type="button" class="slider-arrow prev" aria-label="Previous partner" hidden>{{icon:left}}</button>
+      <div class="logo-viewport">
+        <ul class="logo-track">
+          <li class="logo"><img src="partners/nvidia.svg" alt="NVIDIA" width="170" height="32"></li>
+          <li class="logo"><img src="partners/spacex.svg" alt="SpaceX" width="180" height="23"></li>
+          <li class="logo"><img src="partners/nyt.svg" alt="The New York Times" width="190" height="26"></li>
+          <li class="logo"><img src="partners/barclays.svg" alt="Barclays" width="176" height="30"></li>
+          <li class="logo"><img src="partners/microsoft.svg" alt="Microsoft" width="170" height="36"></li>
+          <li class="logo"><img src="partners/google.svg" alt="Google" width="140" height="47"></li>
+          <li class="logo"><img src="partners/mastercard.svg" alt="Mastercard" width="84" height="52"></li>
+          <li class="logo"><img src="partners/aws.svg" alt="Amazon Web Services" width="90" height="54"></li>
+        </ul>
+      </div>
+      <button type="button" class="slider-arrow next" aria-label="Next partner" hidden>{{icon:right}}</button>
+    </div>
+    <div class="partner-cta"><p>Interested in partnering with DataX?</p><a class="button" href="mailto:business@serge365.co.bw?subject=DataX%20partnership%20enquiry">Become a partner</a></div>
+  </section>
   <section class="contact-panel" id="contact" data-enter="top" aria-labelledby="contact-title">
     <div class="wrap"><div class="contact-card">
-      <div class="contact-media"><img src="stage.webp" alt="Concept rendering of the DataX stage" width="771" height="400" loading="lazy"></div>
-      <div><p class="eyebrow">CONTACT DATAX</p><h2 id="contact-title">Get in touch</h2><p>Contact Serge365 for DataX programme, investor and sponsorship enquiries.</p>
+      <div class="contact-media"><img src="stage.webp" alt="The DataX stage" width="771" height="400" loading="lazy"></div>
+      <div><p class="eyebrow">CONTACT DATAX</p><h2 id="contact-title">Get in touch</h2><p>Contact Serge365 for DataX programme, investor and partnership enquiries.</p>
       <div class="actions"><a class="button" href="mailto:business@serge365.co.bw?subject=DataX%20enquiry">Email the team</a><a class="button contact-outline" href="https://wa.me/26775331810?text=Hello%2C%20I%20have%20a%20question%20about%20DataX%20Botswana.">WhatsApp</a></div></div>
     </div></div>
   </section>
 </main>
 <footer class="site-footer">
   <div class="wrap footer-grid">
-    <div><a class="wordmark" href="#top" aria-label="DataX Botswana home">Data<span>X</span></a><p>From connectivity to intelligence.</p><div class="social"><a href="https://bw.linkedin.com/company/serge365" aria-label="Serge365 on LinkedIn">{{icon:linkedin}}</a><a href="https://wa.me/26775331810?text=Hello%2C%20I%20have%20a%20question%20about%20DataX%20Botswana." aria-label="Contact Serge365 about DataX on WhatsApp">{{icon:whatsapp}}</a></div></div>
-    <div><h2>Explore DataX</h2><ul><li><a href="#about">About DataX</a></li><li><a href="#experience">Summit experience</a></li><li><a href="#programme">Programme</a></li></ul></div>
-    <div><h2>Get involved</h2><ul><li><a href="#investment">Investor matchmaking</a></li><li><a href="#partnerships">Sponsorship</a></li><li><a href="#contact">Contact the team</a></li></ul></div>
+    <div><a class="wordmark" href="#top" aria-label="DataX Botswana home"><b>Data<span>X</span></b><small>Botswana</small></a><p>From connectivity to intelligence.</p><div class="social"><a href="https://bw.linkedin.com/company/serge365" aria-label="Serge365 on LinkedIn">{{icon:linkedin}}</a><a href="https://wa.me/26775331810?text=Hello%2C%20I%20have%20a%20question%20about%20DataX%20Botswana." aria-label="Contact Serge365 about DataX on WhatsApp">{{icon:whatsapp}}</a></div></div>
+    <div><h2>Explore DataX</h2><ul><li><a href="#experience">Summit experience</a></li><li><a href="#about">About DataX</a></li><li><a href="#programme">Programme</a></li><li><a href="#speakers">Speakers</a></li></ul></div>
+    <div><h2>Get involved</h2><ul><li><a href="#investment">Investor matchmaking</a></li><li><a href="#partnerships">Partners</a></li><li><a href="#contact">Contact the team</a></li></ul></div>
     <div><h2>Contact Serge365</h2><ul><li><a href="mailto:business@serge365.co.bw?subject=DataX%20enquiry">business@serge365.co.bw</a></li><li><a href="https://wa.me/26775331810?text=Hello%2C%20I%20have%20a%20question%20about%20DataX%20Botswana.">+267 75 331 810</a></li><li>Gaborone, Botswana</li></ul></div>
     <div><h2>Event date</h2><p><time datetime="2027-03-30">30 March 2027</time></p><a class="button small" href="#programme">View programme</a></div>
   </div>
@@ -124,4 +206,54 @@
   <div><h2 id="cookie-title">Cookie notice</h2><p>This site stores your dismissal preference on this device. The site does not use analytics or advertising cookies.</p></div>
   <button type="button" class="button small cookie-dismiss">Got it</button>
 </aside>
+<dialog class="modal" id="register-dialog" aria-labelledby="register-title">
+  <div class="modal-body">
+    <button type="button" class="modal-close" aria-label="Close registration" data-close>{{icon:close}}</button>
+    <form class="modal-form" novalidate>
+      <p class="eyebrow">DATAX 2027 · 30–31 MARCH · GABORONE</p>
+      <h2 id="register-title">Register for DataX</h2>
+      <p class="modal-intro">Reserve your delegate place in under a minute.</p>
+      <div class="field-row">
+        <label>First name<input name="first" autocomplete="given-name" required autofocus></label>
+        <label>Last name<input name="last" autocomplete="family-name" required></label>
+      </div>
+      <label>Work email<input type="email" name="email" autocomplete="email" required></label>
+      <label>Organisation<input name="org" autocomplete="organization" required></label>
+      <label>I am attending as<select name="role" required><option value="">Choose one</option><option>Delegate</option><option>Investor</option><option>Start-up founder</option><option>Exhibitor</option><option>Government or public sector</option><option>Media</option></select></label>
+      <fieldset class="days"><legend>Days attending</legend><label class="check"><input type="checkbox" name="days" value="Day 1" checked> Day 1 · 30 March</label><label class="check"><input type="checkbox" name="days" value="Day 2" checked> Day 2 · 31 March</label></fieldset>
+      <label class="check"><input type="checkbox" name="consent" required> I agree to be contacted about my DataX registration.</label>
+      <p class="form-error" role="alert" hidden></p>
+      <button class="button" type="submit">Complete registration</button>
+      <p class="modal-switch">Already registered? <button type="button" class="link" data-open="login">Log in</button></p>
+    </form>
+    <div class="modal-done" hidden>
+      <span class="done-icon" aria-hidden="true">{{icon:check}}</span>
+      <h2>You’re registered, <span data-done="name"></span></h2>
+      <p>Your place for <strong data-done="days"></strong> is reserved.</p>
+      <p class="done-ref">Reference <strong data-done="ref"></strong></p>
+      <button type="button" class="button" data-close>Done</button>
+    </div>
+  </div>
+</dialog>
+<dialog class="modal" id="login-dialog" aria-labelledby="login-title">
+  <div class="modal-body">
+    <button type="button" class="modal-close" aria-label="Close log in" data-close>{{icon:close}}</button>
+    <form class="modal-form" novalidate>
+      <p class="eyebrow">WELCOME BACK</p>
+      <h2 id="login-title">Log in to DataX</h2>
+      <p class="modal-intro">Access your registration and the live programme.</p>
+      <label>Email<input type="email" name="email" autocomplete="email" required autofocus></label>
+      <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+      <p class="form-error" role="alert" hidden></p>
+      <button class="button" type="submit">Log in</button>
+      <p class="modal-switch">New to DataX? <button type="button" class="link" data-open="register">Register now</button></p>
+    </form>
+    <div class="modal-done" hidden>
+      <span class="done-icon" aria-hidden="true">{{icon:check}}</span>
+      <h2>Welcome back, <span data-done="name"></span></h2>
+      <p>You’re signed in. Check the live programme to see what’s on now.</p>
+      <a class="button" href="#programme" data-close>View the programme</a>
+    </div>
+  </div>
+</dialog>
 </body></html>
